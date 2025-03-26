@@ -4,6 +4,9 @@
   "description": "Sidekick library generator for AEM Edge Delivery Services projects",
   "type": "module",
   "main": "cli.js",
+  "bin": {
+    "sidekick-library-generator": "./cli.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint .",

@@ -1,11 +1,12 @@
 import axios from 'axios';
-import cheerio from 'cheerio';
+import * as cheerio from 'cheerio';
 import xlsx from 'xlsx';
  
-import { html2docx, Blocks } from '@adobe/helix-importer/';
+import { html2docx, Blocks } from '@adobe/helix-importer/src/index.js';
 import { JSDOM } from 'jsdom';
 import fs from 'fs';
 import { fetchSiteUrls } from './block_helpers.js';
+import DOMUtils from '@adobe/helix-importer/src/utils/DOMUtils.js';
 
 async function getBlocksAndVariants(url) {
   const aggregatedBlocks = {};
@@ -125,21 +126,20 @@ function prepareBlockHtml(block) {
         .map((columnDiv) => [...columnDiv.querySelectorAll(':scope > div')]);
 
       const [newBlockName, ...newInstanceVariants] = div.classList;
-      const blockElem = Blocks.createBlock(document, {
-        name: newBlockName,
-        variants: newInstanceVariants,
-        cells,
+      // Create a table for the block data
+      const data = [[newBlockName]];
+      cells.forEach(row => {
+        data.push(row);
       });
-      div.replaceChildren(blockElem);
+      const table = DOMUtils.createTable(data, document);
+      div.replaceChildren(table);
     });
 
-    const libraryMetadata = Blocks.createBlock(document, {
-      name: 'Library Metadata',
-      cells: {
-        name: variant.name,
-      },
+    // Create metadata block using the static method
+    const metadataTable = Blocks.getMetadataBlock(document, {
+      name: variant.name
     });
-    section.append(libraryMetadata);
+    section.append(metadataTable);
     document.querySelector('main').append(section);
   });
 
