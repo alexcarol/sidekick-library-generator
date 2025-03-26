@@ -189,7 +189,7 @@ async function processUrls(urls) {
     const document = prepareBlockHtml(block);
 
     // TODO fix url somewhere else
-    await writeDocx(variants[0].url.replace('https://thechannelco', 'https://www.thechannelco'), targetPathname, document);
+    await writeDocx(variants[0].url, targetPathname, document);
   }));
 
   const ws = xlsx.utils.aoa_to_sheet(rows);
@@ -200,8 +200,8 @@ async function processUrls(urls) {
   console.log('Library file generated successfully in tools/sidekick/library.xlsx, upload it to sharepoint and make sure to publish it');
 }
 
-export async function generateLibrary() {
-  const urls = await fetchSiteUrls();
+export async function generateLibrary(config) {
+  const urls = await fetchSiteUrls(config);
   await processUrls(urls);
   console.log('Finished processing URLs');
 }

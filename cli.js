@@ -32,9 +32,22 @@ program
 program
   .command('generate')
   .description('Generate the library from your project blocks')
-  .action(async () => {
+  .requiredOption('--org <organization>', 'Organization name (e.g., adobe)')
+  .requiredOption('--project <project>', 'Project name (e.g., helix-website)')
+  .requiredOption('--site <site>', 'Site URL (e.g., https://www.aem.live/)')
+  .action(async (options) => {
     try {
-      await generateLibrary();
+      const apiKey = process.env.AEM_API_KEY;
+      if (!apiKey) {
+        throw new Error('AEM_API_KEY environment variable is required. See README.md for setup instructions.');
+      }
+
+      await generateLibrary({
+        organization: options.org,
+        project: options.project,
+        site: options.site,
+        apiKey
+      });
       console.log('Library generation completed successfully');
     } catch (error) {
       console.error('Library generation failed:', error.message);

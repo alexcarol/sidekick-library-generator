@@ -32,14 +32,11 @@ export function getFileContentsMap() {
   return fileContentsMap;
 }
 
-export async function fetchSiteUrls() {
+export async function fetchSiteUrls(config) {
   console.log('Fetching site URLs...');
 
-  const apiKey = process.env.THECHANNELCO_API_KEY;
-  if (!apiKey) {
-    throw new Error('THECHANNELCO_API_KEY environment variable is required');
-  }
-  const initialUrl = 'https://admin.hlx.page/status/thechannelcompany/thechannelco/main/*';
+  const { organization, project, site, apiKey } = config;
+  const initialUrl = `https://admin.hlx.page/status/${organization}/${project}/main/*`;
   const postData = {
     paths: ['/*'],
   };
@@ -102,7 +99,7 @@ export async function fetchSiteUrls() {
 
     const filteredExtensions = ['.svg', '.json', '.mp4'];
     return !filteredExtensions.includes(path.extname(pathname));
-  }).map((resource) => `https://thechannelco.com${resource.path}`);
+  }).map((resource) => `${site}${resource.path}`);
   console.log(`Obtained ${siteUrls.length} site URLs`);
 
   return siteUrls;
