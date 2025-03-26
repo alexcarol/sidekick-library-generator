@@ -24,10 +24,10 @@
   "homepage": "https://github.com/alexcarol/sidekick-library-generator#readme",
   "dependencies": {
     "@adobe/helix-importer": "^3.4.78",
-    "axios": "^1.6.7",
-    "cheerio": "^1.0.0-rc.12",
+    "axios": "^1.8.2",
+    "cheerio": "^1.0.0",
     "commander": "^13.1.0",
-    "jsdom": "^24.0.0",
+    "jsdom": "^26.0.0",
     "mustache": "^4.2.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
