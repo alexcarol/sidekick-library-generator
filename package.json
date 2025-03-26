@@ -2,7 +2,8 @@
   "name": "sidekick-library-generator",
   "version": "0.1.0",
   "description": "Sidekick library generator for AEM Edge Delivery Services projects",
-  "main": "index.js",
+  "type": "module",
+  "main": "cli.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -15,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/alexcarol/sidekick-library-generator/issues"
   },
-  "homepage": "https://github.com/alexcarol/sidekick-library-generator#readme"
+  "homepage": "https://github.com/alexcarol/sidekick-library-generator#readme",
+  "dependencies": {
+    "commander": "^13.1.0"
+  }
 }
