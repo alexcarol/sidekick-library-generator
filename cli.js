@@ -2,7 +2,7 @@
 
 import { Command } from 'commander';
 import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { dirname } from 'path';
 import { setup } from './setup.js';
 import { generateLibrary } from './generate_library.js';
 
@@ -46,7 +46,7 @@ program
         organization: options.org,
         project: options.project,
         site: options.site,
-        apiKey
+        apiKey,
       });
       console.log('Library generation completed successfully');
     } catch (error) {

@@ -58,7 +58,7 @@ export async function fetchSiteUrls(config) {
   let jobState = 'created';
   while (jobState !== 'stopped' && count < limit) {
     count += 1;
-    // eslint-disable-next-line no-await-in-loop
+     
     const { data: jobStatus } = await axios.get(selfLink, {
       headers: {
         authorization: `token ${apiKey}`,
@@ -66,7 +66,7 @@ export async function fetchSiteUrls(config) {
     });
     jobState = jobStatus.state;
     if (jobState !== 'stopped') {
-      // eslint-disable-next-line no-await-in-loop
+       
       await new Promise((resolve) => { setTimeout(resolve, 500); });
     }
   }

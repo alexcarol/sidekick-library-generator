@@ -1,7 +1,7 @@
 import axios from 'axios';
 import cheerio from 'cheerio';
 import xlsx from 'xlsx';
-/* eslint-disable-next-line import/extensions */
+ 
 import { html2docx, Blocks } from '@adobe/helix-importer/';
 import { JSDOM } from 'jsdom';
 import fs from 'fs';
