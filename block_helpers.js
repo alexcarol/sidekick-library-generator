@@ -41,12 +41,14 @@ export async function fetchSiteUrls(config) {
     paths: ['/*'],
   };
 
+  const authHeaders = {
+    authorization: `token ${apiKey}`,
+    'Content-Type': 'application/json',
+  };
+
   // Step 1: Start the job
   const { data: startJobResponse } = await axios.post(initialUrl, postData, {
-    headers: {
-      authorization: `token ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
+    headers: authHeaders,
   });
 
   const selfLink = startJobResponse.links.self;
@@ -60,9 +62,7 @@ export async function fetchSiteUrls(config) {
     count += 1;
      
     const { data: jobStatus } = await axios.get(selfLink, {
-      headers: {
-        authorization: `token ${apiKey}`,
-      },
+      headers: authHeaders,
     });
     jobState = jobStatus.state;
     if (jobState !== 'stopped') {
@@ -78,9 +78,7 @@ export async function fetchSiteUrls(config) {
   // Step 3: Query the "details" link to get the URLs
   const detailsLink = `${selfLink}/details`;
   const { data: detailsResponse } = await axios.get(detailsLink, {
-    headers: {
-      authorization: `token ${apiKey}`,
-    },
+    headers: authHeaders,
   });
 
   const siteUrls = detailsResponse.data.resources.filter((resource) => {
