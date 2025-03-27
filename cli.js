@@ -49,6 +49,7 @@ program
         apiKey,
       });
       console.log('Library generation completed successfully');
+      process.exit(0);
     } catch (error) {
       console.error('Library generation failed:', error.message);
       process.exit(1);
