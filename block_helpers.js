@@ -32,6 +32,20 @@ export function getFileContentsMap() {
   return fileContentsMap;
 }
 
+function getAuthTokenFromBrowser(organization, project) {
+  const loginUrl = `https://admin.hlx.page/login/${organization}/${project}/main`;
+  console.log('\nTo get your authentication token:');
+  console.log(`1. Open this URL in your browser: ${loginUrl}`);
+  console.log('2. Log in to your account if prompted');
+  console.log('3. Open your browser\'s Developer Tools (F12 or right-click -> Inspect)');
+  console.log('4. Go to the "Application" or "Storage" tab');
+  console.log('5. Look for "Cookies" under the domain "admin.hlx.page"');
+  console.log('6. Find the cookie named "auth_token"');
+  console.log('7. Copy its value\n');
+  
+  throw new Error('Please provide the auth_token from your browser cookies in the config');
+}
+
 export async function fetchSiteUrls(config) {
   console.log('Fetching site URLs...');
 
@@ -41,8 +55,18 @@ export async function fetchSiteUrls(config) {
     paths: ['/*'],
   };
 
+  // Get authentication token either from API key or browser cookie
+  let authToken;
+  if (apiKey) {
+    authToken = `token ${apiKey}`;
+  } else if (config.authToken) {
+    authToken = config.authToken;
+  } else {
+    getAuthTokenFromBrowser(organization, project);
+  }
+
   const authHeaders = {
-    authorization: `token ${apiKey}`,
+    authorization: authToken,
     'Content-Type': 'application/json',
   };
 

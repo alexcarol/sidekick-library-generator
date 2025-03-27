@@ -40,9 +40,7 @@ program
   .action(async (options) => {
     try {
       const apiKey = process.env.AEM_API_KEY;
-      if (!apiKey) {
-        throw new Error('AEM_API_KEY environment variable is required. See README.md for setup instructions.');
-      }
+      const authToken = process.env.AEM_AUTH_TOKEN;
 
       // Get git remote info if org and project are not provided
       const gitInfo = !options.org || !options.project ? getGitRemoteInfo() : null;
@@ -55,15 +53,37 @@ program
         throw new Error('Project name is required. Either provide --project or ensure git remote is configured.');
       }
 
+      const organization = options.org || gitInfo.organization;
+      const project = options.project || gitInfo.project;
+
+      if (!apiKey && !authToken) {
+        console.log('\nAuthentication is required. You can provide it in one of two ways:');
+        console.log('\n1. Using an API key (recommended):');
+        console.log('   Set the AEM_API_KEY environment variable');
+        console.log('   Example: export AEM_API_KEY=your-api-key');
+        console.log('\n2. Using browser authentication:');
+        console.log(`   a. Visit https://admin.hlx.page/login/${organization}/${project}/main`);
+        console.log('   b. Log in to your account if prompted');
+        console.log('   c. Open your browser\'s Developer Tools (F12 or right-click -> Inspect)');
+        console.log('   d. Go to the "Application" or "Storage" tab');
+        console.log('   e. Look for "Cookies" under the domain "admin.hlx.page"');
+        console.log('   f. Find the cookie named "auth_token"');
+        console.log('   g. Copy its value');
+        console.log('   h. Set the AEM_AUTH_TOKEN environment variable');
+        console.log('   Example: export AEM_AUTH_TOKEN=your-auth-token');
+        process.exit(1);
+      }
+
       // Run setup first
       await setup(options.force);
 
       // Then generate the library
       await generateLibrary({
-        organization: options.org || gitInfo.organization,
-        project: options.project || gitInfo.project,
+        organization,
+        project,
         site: options.site,
         apiKey,
+        authToken,
         keepBlockContext: options.keepBlockContext,
       });
       console.log('Library generation completed successfully');
