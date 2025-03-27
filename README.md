@@ -20,26 +20,17 @@ For security reasons, the API key must be provided via environment variable. Nev
 
 ## Usage
 
-### Setup Command
-
 ```bash
-node cli.js setup
+node cli.js generate [--org <organization>] [--project <project>] --site <site> [--force]
 ```
 
-This command sets up the Sidekick library structure in your project.
+Required:
+- `--site`: Site URL (e.g., https://www.aem.live)
 
-### Generate Command
-
-```bash
-node cli.js generate [--org <organization>] [--project <project>] --site <site>
-```
-
-Required options:
-- `--site`: Site URL (e.g., https://www.aem.live/)
-
-Optional options:
+Optional:
 - `--org`: Organization name (e.g., adobe). If not provided, will be automatically detected from git remote.
 - `--project`: Project name (e.g., helix-website). If not provided, will be automatically detected from git remote.
+- `--force`: Force generation even if blocks directory exists. Without this option, the command will fail if blocks have already been generated.
 
 Required environment variable:
 - `AEM_API_KEY`: Your AEM API key for authentication
@@ -53,6 +44,10 @@ node cli.js generate --org adobe --project helix-website --site https://www.aem.
 # Using automatic git remote detection (requires git remote to be configured)
 export AEM_API_KEY=your-api-key
 node cli.js generate --site https://www.aem.live/
+
+# Force overwrite existing blocks
+export AEM_API_KEY=your-api-key
+node cli.js generate --site https://www.aem.live/ --force
 ```
 
 The tool automatically detects the organization and project names from your git remote URL if not provided. This works with both SSH (git@github.com:organization/project.git) and HTTPS (https://github.com/organization/project.git) remote URLs.
@@ -80,7 +75,7 @@ For production use, it's recommended to set up environment variables in your dep
 ### Project Structure
 
 - `cli.js`: Main CLI entry point
-- `setup.js`: Setup command implementation
+- `setup.js`: Setup functionality for generating library structure
 - `generate_library.js`: Library generation implementation
 - `block_helpers.js`: Helper functions for block processing
 - `template/`: Directory containing template files

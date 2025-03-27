@@ -4,6 +4,7 @@ import { Command } from 'commander';
 import { setup } from './setup.js';
 import { generateLibrary } from './generate_library.js';
 import { execSync } from 'child_process';
+import fs from 'fs';
 
 function getGitRemoteInfo() {
   try {
@@ -29,24 +30,12 @@ program
   .version('0.1.0');
 
 program
-  .command('setup')
-  .description('Set up the Sidekick library structure in your project')
-  .action(async () => {
-    try {
-      await setup();
-      console.log('Setup completed successfully');
-    } catch (error) {
-      console.error('Setup failed:', error.message);
-      process.exit(1);
-    }
-  });
-
-program
   .command('generate')
   .description('Generate the library from your project blocks')
   .option('--org <organization>', 'Organization name (e.g., adobe)')
   .option('--project <project>', 'Project name (e.g., helix-website)')
   .requiredOption('--site <site>', 'Site URL (e.g., https://www.aem.live/)')
+  .option('--force', 'Force generation even if blocks directory exists')
   .action(async (options) => {
     try {
       const apiKey = process.env.AEM_API_KEY;
@@ -65,6 +54,10 @@ program
         throw new Error('Project name is required. Either provide --project or ensure git remote is configured.');
       }
 
+      // Run setup first
+      await setup(options.force);
+
+      // Then generate the library
       await generateLibrary({
         organization: options.org || gitInfo.organization,
         project: options.project || gitInfo.project,
