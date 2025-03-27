@@ -17,7 +17,7 @@
     "url": "git+ssh://git@github.com/alexcarol/sidekick-library-generator.git"
   },
   "author": "Alex Carol",
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/alexcarol/sidekick-library-generator/issues"
   },
