@@ -105,7 +105,7 @@ async function writeDocx(url, pathname, document) {
   fs.writeFileSync(filepath, docx);
 }
 
-function prepareBlockHtml(block) {
+function prepareBlockHtml(block, keepBlockContext = false) {
   const { name: originalBlockName, variants } = block;
   const pageHtml = '<html><body><main></main></body></html>';
   const { document } = new JSDOM(pageHtml).window;
@@ -115,36 +115,51 @@ function prepareBlockHtml(block) {
     const section = document.createElement('div');
     section.innerHTML = sectionHtml;
 
-    let foundBlock = false;
-    section.querySelectorAll(':scope > div').forEach((div) => {
-      const currentBlockName = div.classList[0];
-      if (currentBlockName === originalBlockName) {
-        if (foundBlock || div.classList.toString() !== [originalBlockName, ...instanceVariants].join(' ')) {
+    if (!keepBlockContext) {
+      // Find the matching block and replace the entire section with just that block
+      const matchingBlock = section.querySelector(`div.${[originalBlockName, ...instanceVariants].join('.')}`);
+      const cells = [...matchingBlock.querySelectorAll(':scope > div')]
+        .map((columnDiv) => [...columnDiv.querySelectorAll(':scope > div')]);
+      
+      const block = Blocks.createBlock(document, {
+        name: originalBlockName,
+        variants: instanceVariants,
+        cells,
+      });
+      section.innerHTML = '';
+      section.appendChild(block);
+    } else {
+      let foundBlock = false;
+      section.querySelectorAll(':scope > div').forEach((div) => {
+        const currentBlockName = div.classList[0];
+        if (currentBlockName === originalBlockName) {
+          if (foundBlock || div.classList.toString() !== [originalBlockName, ...instanceVariants].join(' ')) {
+            div.remove();
+            return;
+          }
+          foundBlock = true;
+        } else if (currentBlockName !== 'section-metadata') {
           div.remove();
           return;
         }
-        foundBlock = true;
-      } else if (currentBlockName !== 'section-metadata') {
-        div.remove();
-        return;
-      }
 
-      const cells = [...div.querySelectorAll(':scope > div')]
-        .map((columnDiv) => [...columnDiv.querySelectorAll(':scope > div')]);
+        const cells = [...div.querySelectorAll(':scope > div')]
+          .map((columnDiv) => [...columnDiv.querySelectorAll(':scope > div')]);
 
-      const [newBlockName, ...newInstanceVariants] = div.classList;
-      // Create a table for the block data
-      const data = [[newBlockName]];
-      cells.forEach(row => {
-        data.push(row);
+        const [newBlockName, ...newInstanceVariants] = div.classList;
+        // Create a table for the block data
+        const data = [[newBlockName]];
+        cells.forEach(row => {
+          data.push(row);
+        });
+        const block = Blocks.createBlock(document, {
+          name: newBlockName,
+          variants: newInstanceVariants,
+          cells,
+        });
+        div.replaceChildren(block);
       });
-      const block = Blocks.createBlock(document, {
-        name: newBlockName,
-        variants: newInstanceVariants,
-        cells,
-      });
-      div.replaceChildren(block);
-    });
+    }
 
     const libraryMetadata = Blocks.createBlock(document, {
       name: 'Library Metadata',
@@ -168,7 +183,7 @@ function prepareBlockHtml(block) {
   return document;
 }
 
-async function processUrls(urls) {
+async function processUrls(urls, config) {
   console.log(`\nStarting to process ${urls.length} URLs`);
   const aggregatedBlocks = {};
   const existingBlocks = listProjectBlocks();
@@ -209,7 +224,7 @@ async function processUrls(urls) {
 
       const targetPathname = `tools/sidekick/blocks/${toClassName(name)}`;
       rows.push([name, `/${targetPathname}`]);
-      const document = prepareBlockHtml(block);
+      const document = prepareBlockHtml(block, config.keepBlockContext);
 
       await writeDocx(variants[0].url, targetPathname, document);
     } catch (error) {
@@ -232,12 +247,11 @@ async function processUrls(urls) {
 }
 
 export async function generateLibrary(config) {
-  // Normalize the site URL by removing trailing slashes
   const normalizedConfig = {
     ...config,
     site: config.site.replace(/\/+$/, ''),
   };
   const urls = await fetchSiteUrls(normalizedConfig);
-  await processUrls(urls);
+  await processUrls(urls, normalizedConfig);
   console.log('Finished processing URLs');
 }

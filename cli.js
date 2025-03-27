@@ -36,6 +36,7 @@ program
   .option('--project <project>', 'Project name (e.g., helix-website)')
   .requiredOption('--site <site>', 'Site URL (e.g., https://www.aem.live/)')
   .option('--force', 'Force generation even if blocks directory exists')
+  .option('--keep-block-context', 'Keep the block context (other blocks and default content) in the section')
   .action(async (options) => {
     try {
       const apiKey = process.env.AEM_API_KEY;
@@ -63,6 +64,7 @@ program
         project: options.project || gitInfo.project,
         site: options.site,
         apiKey,
+        keepBlockContext: options.keepBlockContext,
       });
       console.log('Library generation completed successfully');
       process.exit(0);
