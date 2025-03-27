@@ -58,7 +58,7 @@ program
 
       if (!apiKey && !authToken) {
         console.log('\nAuthentication is required. You can provide it in one of two ways:');
-        console.log('\n1. Using an API key (recommended):');
+        console.log('\n1. Using an API key:');
         console.log('   Set the AEM_API_KEY environment variable');
         console.log('   Example: export AEM_API_KEY=your-api-key');
         console.log('\n2. Using browser authentication:');
