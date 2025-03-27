@@ -13,31 +13,37 @@ async function getBlocksAndVariants(url) {
   const aggregatedBlocks = {};
 
   const blocksToIgnore = ['section-metadata'];
-  const { data: html } = await axios.get(url);
-  const $ = cheerio.load(html);
+  try {
+    const { data: html } = await axios.get(url);
+    const $ = cheerio.load(html);
 
-  $('main > div > div').each((index, element) => {
-    const classList = $(element).attr('class').split(/\s+/);
-    if (classList.length > 0) {
-      const blockName = classList[0];
-      if (blocksToIgnore.includes(blockName)) {
-        return;
+    $('main > div > div').each((index, element) => {
+      const classAttr = $(element).attr('class');
+      const classList = classAttr.split(/\s+/);
+      if (classList.length > 0) {
+        const blockName = classList[0];
+        if (blocksToIgnore.includes(blockName)) {
+          return;
+        }
+        const variants = classList.slice(1);
+
+        if (!aggregatedBlocks[blockName]) {
+          aggregatedBlocks[blockName] = [];
+        }
+
+        aggregatedBlocks[blockName].push({
+          blockName,
+          url,
+          variants,
+          // html of the parent of the element
+          sectionHtml: $(element).parent().html(),
+        });
       }
-      const variants = classList.slice(1);
-
-      if (!aggregatedBlocks[blockName]) {
-        aggregatedBlocks[blockName] = [];
-      }
-
-      aggregatedBlocks[blockName].push({
-        blockName,
-        url,
-        variants,
-        // html of the parent of the element
-        sectionHtml: $(element).parent().html(),
-      });
-    }
-  });
+    });
+  } catch (error) {
+    console.error(`Error processing URL ${url}:`, error);
+    throw error;
+  }
 
   return aggregatedBlocks;
 }
@@ -135,7 +141,7 @@ function prepareBlockHtml(block) {
       const block = Blocks.createBlock(document, {
         name: newBlockName,
         variants: newInstanceVariants,
-        data,
+        cells,
       });
       div.replaceChildren(block);
     });
@@ -161,40 +167,43 @@ function prepareBlockHtml(block) {
 }
 
 async function processUrls(urls) {
+  console.log(`\nStarting to process ${urls.length} URLs`);
   const aggregatedBlocks = {};
   await Promise.all(urls.map(async (url) => {
-    await getBlocksAndVariants(url)
-      .then((iterationAggregatedBlocks) => {
-        Object.keys(iterationAggregatedBlocks).forEach((blockName) => {
-          if (!aggregatedBlocks[blockName]) {
-            aggregatedBlocks[blockName] = [];
-          }
-          aggregatedBlocks[blockName].push(...iterationAggregatedBlocks[blockName]);
-        });
-      })
-      .catch((error) => {
-        console.error('Error processing URL:', url, error);
+    try {
+      const iterationAggregatedBlocks = await getBlocksAndVariants(url);
+      Object.keys(iterationAggregatedBlocks).forEach((blockName) => {
+        if (!aggregatedBlocks[blockName]) {
+          aggregatedBlocks[blockName] = [];
+        }
+        aggregatedBlocks[blockName].push(...iterationAggregatedBlocks[blockName]);
       });
+    } catch (error) {
+      console.error('Error processing URL:', url, error);
+    }
   }));
 
   fs.mkdirSync('tools/sidekick/blocks', { recursive: true });
 
   const rows = [['name', 'path']];
   const reduced = reduceBlocks(aggregatedBlocks);
+  console.log(`Reduced to ${reduced.length} blocks`);
 
   await Promise.all(reduced.map(async (block) => {
-    const {
-      name,
-      variants,
-    } = block;
+    try {
+      const {
+        name,
+        variants,
+      } = block;
 
-    const targetPathname = `tools/sidekick/blocks/${toClassName(name)}`;
+      const targetPathname = `tools/sidekick/blocks/${toClassName(name)}`;
+      rows.push([name, `/${targetPathname}`]);
+      const document = prepareBlockHtml(block);
 
-    rows.push([name, `/${targetPathname}`]);
-    const document = prepareBlockHtml(block);
-
-    // TODO fix url somewhere else
-    await writeDocx(variants[0].url, targetPathname, document);
+      await writeDocx(variants[0].url, targetPathname, document);
+    } catch (error) {
+      console.error(`Error processing block ${block.name}:`, error);
+    }
   }));
 
   const ws = xlsx.utils.aoa_to_sheet(rows);
