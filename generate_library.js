@@ -1,6 +1,8 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import xlsx from 'xlsx';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const xlsx = require('xlsx');
  
 import { html2docx, Blocks } from '@adobe/helix-importer/src/index.js';
 import { JSDOM } from 'jsdom';
@@ -198,13 +200,24 @@ async function processUrls(urls) {
   const ws = xlsx.utils.aoa_to_sheet(rows);
   const wb = xlsx.utils.book_new();
   xlsx.utils.book_append_sheet(wb, ws, 'blocks');
-  xlsx.writeFile(wb, 'tools/sidekick/library.xlsx');
+  
+  const buffer = xlsx.write(wb, { bookType: 'xlsx', type: 'buffer' });
+  fs.writeFileSync('tools/sidekick/library.xlsx', buffer);
 
-  console.log('Library file generated successfully in tools/sidekick/library.xlsx, upload it to sharepoint and make sure to publish it');
+  console.log('\n\x1b[32m%s\x1b[0m', 'Library generated successfully!');
+  console.log('\n\x1b[33m%s\x1b[0m', 'Next steps - Upload to SharePoint:');
+  console.log('\x1b[36m%s\x1b[0m', '1. Upload all files from tools/sidekick/blocks/');
+  console.log('\x1b[36m%s\x1b[0m', '2. Upload tools/sidekick/library.xlsx');
+  console.log('\x1b[36m%s\x1b[0m', '3. Publish all uploaded files');
 }
 
 export async function generateLibrary(config) {
-  const urls = await fetchSiteUrls(config);
+  // Normalize the site URL by removing trailing slashes
+  const normalizedConfig = {
+    ...config,
+    site: config.site.replace(/\/+$/, '')
+  };
+  const urls = await fetchSiteUrls(normalizedConfig);
   await processUrls(urls);
   console.log('Finished processing URLs');
 }
