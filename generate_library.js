@@ -7,7 +7,7 @@ const xlsx = require('xlsx');
 import { html2docx, Blocks } from '@adobe/helix-importer/src/index.js';
 import { JSDOM } from 'jsdom';
 import fs from 'fs';
-import { fetchSiteUrls } from './block_helpers.js';
+import { fetchSiteUrls, listProjectBlocks } from './block_helpers.js';
 
 async function getBlocksAndVariants(url) {
   const aggregatedBlocks = {};
@@ -146,11 +146,13 @@ function prepareBlockHtml(block) {
       div.replaceChildren(block);
     });
 
-    // Create metadata block using the static method
-    const metadataTable = Blocks.getMetadataBlock(document, {
-      name: variant.name,
+    const libraryMetadata = Blocks.createBlock(document, {
+      name: 'Library Metadata',
+      cells: {
+        name: variant.name,
+      },
     });
-    section.append(metadataTable);
+    section.append(libraryMetadata);
     document.querySelector('main').append(section);
   });
 
@@ -169,6 +171,9 @@ function prepareBlockHtml(block) {
 async function processUrls(urls) {
   console.log(`\nStarting to process ${urls.length} URLs`);
   const aggregatedBlocks = {};
+  const existingBlocks = listProjectBlocks();
+  console.log(`Found ${existingBlocks.length} existing blocks in the project`);
+
   await Promise.all(urls.map(async (url) => {
     try {
       const iterationAggregatedBlocks = await getBlocksAndVariants(url);
@@ -187,7 +192,7 @@ async function processUrls(urls) {
 
   const rows = [['name', 'path']];
   const reduced = reduceBlocks(aggregatedBlocks);
-  console.log(`Reduced to ${reduced.length} blocks`);
+  console.log(`Found ${reduced.length} blocks in the site`);
 
   await Promise.all(reduced.map(async (block) => {
     try {
@@ -195,6 +200,12 @@ async function processUrls(urls) {
         name,
         variants,
       } = block;
+
+      // Check if the block exists locally
+      if (!existingBlocks.includes(name)) {
+        console.warn(`\x1b[33mWarning: Block "${name}" not found in local blocks directory. Found at URL: ${variants[0].url}\x1b[0m`);
+        return;
+      }
 
       const targetPathname = `tools/sidekick/blocks/${toClassName(name)}`;
       rows.push([name, `/${targetPathname}`]);
