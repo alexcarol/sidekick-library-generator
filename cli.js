@@ -1,13 +1,25 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import { setup } from './setup.js';
 import { generateLibrary } from './generate_library.js';
+import { execSync } from 'child_process';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+function getGitRemoteInfo() {
+  try {
+    const remoteUrl = execSync('git remote get-url origin').toString().trim();
+    const match = remoteUrl.match(/(?:git@github\.com:|https:\/\/github\.com\/)([^/]+)\/([^/]+?)(?:\.git)?$/);
+    if (match) {
+      return {
+        organization: match[1],
+        project: match[2],
+      };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 const program = new Command();
 
@@ -32,8 +44,8 @@ program
 program
   .command('generate')
   .description('Generate the library from your project blocks')
-  .requiredOption('--org <organization>', 'Organization name (e.g., adobe)')
-  .requiredOption('--project <project>', 'Project name (e.g., helix-website)')
+  .option('--org <organization>', 'Organization name (e.g., adobe)')
+  .option('--project <project>', 'Project name (e.g., helix-website)')
   .requiredOption('--site <site>', 'Site URL (e.g., https://www.aem.live/)')
   .action(async (options) => {
     try {
@@ -42,9 +54,20 @@ program
         throw new Error('AEM_API_KEY environment variable is required. See README.md for setup instructions.');
       }
 
+      // Get git remote info if org and project are not provided
+      const gitInfo = !options.org || !options.project ? getGitRemoteInfo() : null;
+      
+      if (!options.org && !gitInfo) {
+        throw new Error('Organization name is required. Either provide --org or ensure git remote is configured.');
+      }
+      
+      if (!options.project && !gitInfo) {
+        throw new Error('Project name is required. Either provide --project or ensure git remote is configured.');
+      }
+
       await generateLibrary({
-        organization: options.org,
-        project: options.project,
+        organization: options.org || gitInfo.organization,
+        project: options.project || gitInfo.project,
         site: options.site,
         apiKey,
       });

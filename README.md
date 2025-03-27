@@ -31,22 +31,31 @@ This command sets up the Sidekick library structure in your project.
 ### Generate Command
 
 ```bash
-node cli.js generate --org <organization> --project <project> --site <site>
+node cli.js generate [--org <organization>] [--project <project>] --site <site>
 ```
 
 Required options:
-- `--org`: Organization name (e.g., adobe)
-- `--project`: Project name (e.g., helix-website)
 - `--site`: Site URL (e.g., https://www.aem.live/)
+
+Optional options:
+- `--org`: Organization name (e.g., adobe). If not provided, will be automatically detected from git remote.
+- `--project`: Project name (e.g., helix-website). If not provided, will be automatically detected from git remote.
 
 Required environment variable:
 - `AEM_API_KEY`: Your AEM API key for authentication
 
-Example:
+Examples:
 ```bash
+# Using explicit organization and project names
 export AEM_API_KEY=your-api-key
 node cli.js generate --org adobe --project helix-website --site https://www.aem.live/
+
+# Using automatic git remote detection (requires git remote to be configured)
+export AEM_API_KEY=your-api-key
+node cli.js generate --site https://www.aem.live/
 ```
+
+The tool automatically detects the organization and project names from your git remote URL if not provided. This works with both SSH (git@github.com:organization/project.git) and HTTPS (https://github.com/organization/project.git) remote URLs.
 
 ## Security Best Practices
 

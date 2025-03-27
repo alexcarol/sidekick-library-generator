@@ -224,7 +224,7 @@ export async function generateLibrary(config) {
   // Normalize the site URL by removing trailing slashes
   const normalizedConfig = {
     ...config,
-    site: config.site.replace(/\/+$/, '')
+    site: config.site.replace(/\/+$/, ''),
   };
   const urls = await fetchSiteUrls(normalizedConfig);
   await processUrls(urls);
