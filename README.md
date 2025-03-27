@@ -5,7 +5,7 @@ A CLI tool for generating Sidekick libraries for AEM Edge Delivery Services proj
 ## Installation
 
 ```bash
-npm install
+npm install -g sidekick-library-generator
 ```
 
 ## Prerequisites
@@ -21,7 +21,7 @@ For security reasons, the API key must be provided via environment variable. Nev
 ## Usage
 
 ```bash
-node cli.js generate [--org <organization>] [--project <project>] --site <site> [--force]
+sidekick-library-generator [--org <organization>] [--project <project>] --site <site> [--force] [--keep-block-context]
 ```
 
 Required:
@@ -31,6 +31,7 @@ Optional:
 - `--org`: Organization name (e.g., adobe). If not provided, will be automatically detected from git remote.
 - `--project`: Project name (e.g., helix-website). If not provided, will be automatically detected from git remote.
 - `--force`: Force generation even if blocks directory exists. Without this option, the command will fail if blocks have already been generated.
+- `--keep-block-context`: Preserve the original block context when generating the library. This is useful when the block alters its containing section in any way.
 
 Required environment variable:
 - `AEM_API_KEY`: Your AEM API key for authentication
@@ -39,15 +40,19 @@ Examples:
 ```bash
 # Using explicit organization and project names
 export AEM_API_KEY=your-api-key
-node cli.js generate --org adobe --project helix-website --site https://www.aem.live/
+sidekick-library-generator --org adobe --project helix-website --site https://www.aem.live/
 
 # Using automatic git remote detection (requires git remote to be configured)
 export AEM_API_KEY=your-api-key
-node cli.js generate --site https://www.aem.live/
+sidekick-library-generator --site https://www.aem.live/
 
 # Force overwrite existing blocks
 export AEM_API_KEY=your-api-key
-node cli.js generate --site https://www.aem.live/ --force
+sidekick-library-generator --site https://www.aem.live/ --force
+
+# Preserve block context while generating
+export AEM_API_KEY=your-api-key
+sidekick-library-generator --site https://www.aem.live/ --keep-block-context
 ```
 
 The tool automatically detects the organization and project names from your git remote URL if not provided. This works with both SSH (git@github.com:organization/project.git) and HTTPS (https://github.com/organization/project.git) remote URLs.
@@ -89,4 +94,4 @@ For production use, it's recommended to set up environment variables in your dep
 
 ## License
 
-UNLICENSED 
+Apache-2.0 
