@@ -4,7 +4,6 @@ import { Command } from 'commander';
 import { setup } from './setup.js';
 import { generateLibrary } from './generate_library.js';
 import { execSync } from 'child_process';
-import fs from 'fs';
 
 function getGitRemoteInfo() {
   try {

@@ -9,29 +9,6 @@ export function listProjectBlocks() {
     .filter((file) => fs.statSync(path.join(blocksDir, file)).isDirectory());
 }
 
-export function populateFileContentsMap(folder, fileContentsMap) {
-  const files = fs.readdirSync(folder);
-  files.forEach((file) => {
-    const fullPath = path.join(folder, file);
-    const stat = fs.statSync(fullPath);
-    if (stat.isDirectory()) {
-      populateFileContentsMap(fullPath, fileContentsMap);
-    } else if (stat.isFile()) {
-      const content = fs.readFileSync(fullPath, 'utf8');
-      fileContentsMap.set(fullPath, content);
-    } else {
-      throw new Error('Unexpected file type', stat);
-    }
-  });
-}
-
-export function getFileContentsMap() {
-  const fileContentsMap = new Map();
-  const folders = ['blocks', 'scripts', 'templates', 'styles'];
-  folders.forEach((folder) => populateFileContentsMap(folder, fileContentsMap));
-  return fileContentsMap;
-}
-
 function getAuthTokenFromBrowser(organization, project) {
   const loginUrl = `https://admin.hlx.page/login/${organization}/${project}/main`;
   console.log('\nTo get your authentication token:');
